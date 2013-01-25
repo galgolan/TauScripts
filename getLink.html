@@ -1,0 +1,53 @@
+<head>
+<script>
+	function notify(message)
+	{
+		document.getElementById("message").innerHTML = "<FONT color=\"red\">" + message + "</FONT>";
+	}
+
+
+	function writeLink()
+	{		
+		var user = String(document.getElementById("user").value);
+		var pass = String(document.getElementById("pass").value);
+		var id = String(document.getElementById("id").value);
+
+		// validate	
+		if (user.length <= 0)
+		{
+			notify("Username must not be empty!");
+			return;
+		}	
+		else if(pass.length <= 0)
+		{
+			notify("Password must not be empty!");
+			return;
+		}
+		else if(id.length != 9)
+		{
+			notify("ID must be exactly 9 digits!");			
+			return;
+		}		
+
+		// support weird chars some users might have
+		user = encodeURIComponent(user);
+		pass = encodeURIComponent(pass);
+
+		notify("");
+		var link = "http://dl.dropbox.com/u/22946967/moodle_login.htm?user=" + user + "&pass=" + pass + "&id=" + id;
+		var linkBox = document.getElementById("link").value = link;
+	}
+</script>
+</head>
+<body>
+<html>
+<form id="linkForm">
+	<div id="message">Please fill in your details and press the "Get Link" button. Than, copy the link and create a bookmark with it.</div>
+	Username: <input type="text" id="user"/></BR>
+	Password: <input type="text" id="pass"/></BR>
+	ID: <input type="text" id="id" maxlength=9 size=9/></BR>
+	<input value="Get Link" type="button" onClick='writeLink()'/></BR>
+	Bookmark: <input type="text" readonly id="link" size=110/>
+</form>
+</html>
+</body>
