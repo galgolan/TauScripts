@@ -9,9 +9,9 @@ var debug_mode = true;
 
 function extractUrl(innerHtml)
 {
-	var re = new RegExp('\'mms(://.+?\.wmv)\'');
+	var re = new RegExp('\'mms://msvideo.tau.ac.il/CMS/(.+?\.wmv)\'');
 	var captures = re.exec(innerHtml);
-	var url = 'mmsh' + captures[1];
+	var url = 'https://ivideo.tau.ac.il/files/' + captures[1];
 	return url;
 }
 
@@ -40,7 +40,7 @@ function ajaxCallback(req, div) {
 }
 
 function injectButton(div, url) {
-	var html = "<BR/><a href=\"" + url + "\">Video Download Link</a>";
+	var html = "<BR/><a href=\"" + url + "\" download>Video Download Link</a>";
 	var detailsPane = div.children[1].children[2];
 	detailsPane.innerHTML += html;
 }
