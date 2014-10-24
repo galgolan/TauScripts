@@ -65,7 +65,7 @@
                     userid = value;
             }
 
-            post_to_url('https://idp.tau.ac.il/nidp/saml2/sso?sid=0', {'Ecom_User_ID':username, 'Ecom_User_Pid':userid, 'Ecom_Password':password, 'option':'credential'}, 'post');
+            post_to_url('https://nidp.tau.ac.il/nidp/saml2/sso?sid=1', {'Ecom_User_ID':username, 'Ecom_User_Pid':userid, 'Ecom_Password':password, 'option':'credential'}, 'post');
         }
 
         </script>
