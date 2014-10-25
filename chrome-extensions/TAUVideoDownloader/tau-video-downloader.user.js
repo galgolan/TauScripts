@@ -7,48 +7,11 @@
 
 var debug_mode = true;
 
-function post_to_url(path, params, method)
-{
-    method = method || "post"; // Set method to post by default, if not specified.
-
-    // The rest of this code assumes you are not using a library.
-    // It can be made less wordy if you use one.
-    var form = document.createElement("form");
-    form.setAttribute("method", method);
-    form.setAttribute("action", path);
-    //form.setAttribute("target", "_self");
-    form.setAttribute("enctype", "application/x-www-form-urlencoded");
-
-    for(var key in params)
-    {
-        if(params.hasOwnProperty(key))
-        {
-            var hiddenField = document.createElement("input");
-            hiddenField.setAttribute("type", "hidden");
-            hiddenField.setAttribute("name", key);
-            hiddenField.setAttribute("value", params[key]);
-
-            form.appendChild(hiddenField);
-         }
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-}
-
-function loginToSso() {
-	var username='galgolan';
-	var password='pil4Pel6';
-	var userid = '200137206';
-
-	post_to_url('https://nidp.tau.ac.il/nidp/saml2/sso?sid=1', {'Ecom_User_ID':username, 'Ecom_User_Pid':userid, 'Ecom_Password':password, 'option':'credential'}, 'post');
-}
-
 function extractUrl(innerHtml)
 {
 	var re = new RegExp('\'mms://msvideo.tau.ac.il/CMS/(.+?\.wmv)\'');
 	var captures = re.exec(innerHtml);
-	var url = 'https://ivideo.tau.ac.il/files/' + captures[1];
+	var url = 'https://video.tau.ac.il/files/' + captures[1];
 	return url;
 }
 
@@ -73,12 +36,19 @@ function ajaxCallback(req, div) {
 		var url = extractUrl(req.responseText);
 
 		// show in page
-		injectButton(div, url);
+		var filename = extractFilename(div);
+		injectButton(div, url, filename);
 	}	
 }
 
-function injectButton(div, url) {
-	var html = "<BR/><a href=\"" + url + "\" download>Download Video</a>";
+function extractFilename(div) {
+	var lecture = div.outerText.split('\n')[3].split('[')[0].trim();
+	var course = div.outerText.split('\n')[1].replace('/', '-');
+	return course + ' ' + lecture;
+}
+
+function injectButton(div, url, filename) {
+	var html = "<BR/><a href=\"" + url + '#' + filename + "\" download>Download Video</a>";
 	var detailsPane = div.children[1].children[2];
 	detailsPane.innerHTML += html;
 }
@@ -105,7 +75,6 @@ function revertToHttp() {
 try
 {
 	revertToHttp();
-	//loginToSso();
 	handleListView();
 }
 catch(x)
