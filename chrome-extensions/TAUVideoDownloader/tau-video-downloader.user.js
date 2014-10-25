@@ -9,15 +9,16 @@ var debug_mode = true;
 
 function extractUrl(innerHtml)
 {
-	var re = new RegExp('\'mms(://.+?\.wmv)\'');
+	var re = new RegExp('\'mms://msvideo.tau.ac.il/CMS/(.+?\.wmv)\'');
 	var captures = re.exec(innerHtml);
-	var url = 'mmsh' + captures[1];
+	var url = 'https://video.tau.ac.il/files/' + captures[1];
 	return url;
 }
 
 function requestDetailsPage(div) {
 	// extract url from div
 	var url = div.children.item().href;
+	url = url.replace('https', 'http');
 
 	var req = new XMLHttpRequest();
 	req.onreadystatechange = function() {
@@ -35,12 +36,19 @@ function ajaxCallback(req, div) {
 		var url = extractUrl(req.responseText);
 
 		// show in page
-		injectButton(div, url);
+		var filename = extractFilename(div);
+		injectButton(div, url, filename);
 	}	
 }
 
-function injectButton(div, url) {
-	var html = "<BR/><a href=\"" + url + "\">Video Download Link</a>";
+function extractFilename(div) {
+	var lecture = div.outerText.split('\n')[3].split('[')[0].trim();
+	var course = div.outerText.split('\n')[1].replace('/', '-');
+	return course + ' ' + lecture;
+}
+
+function injectButton(div, url, filename) {
+	var html = "<BR/><a href=\"" + url + '#' + filename + "\" download>Download Video</a>";
 	var detailsPane = div.children[1].children[2];
 	detailsPane.innerHTML += html;
 }
@@ -53,8 +61,20 @@ function handleListView() {
 	}
 }
 
+function revertToHttp() {
+	var location = String(window.location);
+
+	// the details page redirects to HTTP, so we must also run from HTTP
+	if(location.indexOf('https') != -1)
+	{
+		var target = location.replace('https','http');
+		window.location = target;
+	}
+}
+
 try
 {
+	revertToHttp();
 	handleListView();
 }
 catch(x)
