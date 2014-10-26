@@ -8,6 +8,7 @@
 var debug_mode = true;
 var course_name = '';
 var filesList = [];
+var activeRequests = 0;
 
 function extractUrl(innerHtml)
 {
@@ -28,18 +29,23 @@ function requestDetailsPage(div) {
 	};
 	req.open("GET", url, true);
 	req.send();
-	//ajaxCallback(req, div);
+	++activeRequests;
 }
 
 function ajaxCallback(req, div) {
 	if (req.readyState == 4 && req.status==200)
 	{
+		--activeRequests;
 		// extract url from response
 		var url = extractUrl(req.responseText);
 
 		// show in page
 		var filename = extractFilename(div);
 		injectButton(div, url, filename);
+
+		// create the download all button if finished parsing all URLs
+		if(activeRequests <= 0)
+			createDownloadAllBtn();
 	}	
 }
 
@@ -105,8 +111,10 @@ function createDownloadAllBtn() {
 }
 
 function downloadAll() {
-	// send a message to the background script with the downloads list
-	chrome.runtime.sendMessage(filesList);
+	if(confirm('Are you sure you want to download ' + filesList.length + ' videos?')) {
+		// send a message to the background script with the downloads list
+		chrome.runtime.sendMessage(filesList);
+	}
 }
 
 try
@@ -114,7 +122,6 @@ try
 	revertToHttp();
 	getCourseName();	// must be called before we add the 'Download All' link
 	handleListView();
-	createDownloadAllBtn();
 }
 catch(x)
 {
