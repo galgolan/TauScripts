@@ -1,23 +1,22 @@
 {
   "manifest_version": 2,
   "name": "Moodle Tab Renamer",
-  "version": "1.4",
+  "version": "1.5",
 
   "author": "Galgo",
   "description": "Sets titles of windows and tabs to the filename when openning PDF documents from Moodle.",  
   "short_name": "MoodleTabRenamer",
 
   "options_page": "options.html",
-  
-  "content_scripts": [
-    {
-      "matches": ["http://moodle.tau.ac.il/pluginfile.php/*"],
-      "js": ["changeTitle.user.js"]
-    }
-  ],
+
+  "background": {
+     "persistent": false,
+     "scripts": ["bg.js"]
+   },
 
   "permissions": [
-    "storage"
+    "storage",
+    "tabs"
   ],
   
   "icons": {

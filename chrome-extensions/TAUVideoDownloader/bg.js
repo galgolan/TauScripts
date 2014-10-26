@@ -39,3 +39,12 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 	{urls: ["*://video.tau.ac.il/files/*wmv"]},
 	["blocking","requestHeaders"]
 );
+
+chrome.runtime.onMessage.addListener(
+	function(request, sender, sendResponse) {
+    	for(i = 0; i < request.length; ++i) {
+			var item = request[i];
+			chrome.downloads.download({url: item.url, filename: item.filename, saveAs:false});
+		}
+  	}
+);

@@ -6,6 +6,8 @@
 // ==/UserScript==
 
 var debug_mode = true;
+var course_name = '';
+var filesList = [];
 
 function extractUrl(innerHtml)
 {
@@ -41,13 +43,31 @@ function ajaxCallback(req, div) {
 	}	
 }
 
+function getCourseName() {
+	var title = document.getElementsByClassName('course_title');
+	if(title.length == 1)
+		course_name = title[0].innerText;
+}
+
 function extractFilename(div) {
-	var lecture = div.outerText.split('\n')[3].split('[')[0].trim();
-	var course = div.outerText.split('\n')[1].replace('/', '-');
+	var fields = div.outerText.split('\n');
+	if(fields.length == 10) {
+		// this is the 'New Videos' page
+		var lecture = fields[3].split('[')[0].trim();
+		var course = fields[1].replace('/', '-');
+	}
+	else {// fields.length == 8
+		// this is a specific course page
+		var lecture = fields[1].split('[')[0].trim();
+		var course = course_name.replace('/', '-');
+	}
+	
 	return course + ' ' + lecture;
 }
 
 function injectButton(div, url, filename) {
+	filesList[filesList.length] = {url: url, filename: filename};
+
 	var html = "<BR/><a href=\"" + url + '#' + filename + "\" download>Download Video</a>";
 	var detailsPane = div.children[1].children[2];
 	detailsPane.innerHTML += html;
@@ -72,10 +92,29 @@ function revertToHttp() {
 	}
 }
 
+function createDownloadAllBtn() {
+	var div = document.getElementsByClassName("contentpane")[0];
+	for(i = 0; i < div.children.length; ++i) {
+		var c = div.children[i];
+		if(c.tagName == "H3") {
+			c.innerHTML += "   <A href='javascript:void(0)'>Download All</A>";
+			c.addEventListener('click', downloadAll);
+			break;
+		}
+	}
+}
+
+function downloadAll() {
+	// send a message to the background script with the downloads list
+	chrome.runtime.sendMessage(filesList);
+}
+
 try
 {
 	revertToHttp();
+	getCourseName();	// must be called before we add the 'Download All' link
 	handleListView();
+	createDownloadAllBtn();
 }
 catch(x)
 {
