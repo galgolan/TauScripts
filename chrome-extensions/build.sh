@@ -1,8 +1,13 @@
-rm MoodleTabRenamer.zip
-zip -r MoodleTabRenamer.zip MoodleTabRenamer -x *.DS_Store
+rm bin/*
+rmdir bin
 
-rm TauVideoDownloader.zip
-zip -r TauVideoDownloader.zip TauVideoDownloader -x *.DS_Store
+mkdir -p bin
+
+zip -r bin/MoodleTabRenamer.zip MoodleTabRenamer -x *.DS_Store
+zip -r bin/TauVideoDownloader.zip TauVideoDownloader -x *.DS_Store
 
 /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --pack-extension=./TauVideoDownloader
 /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --pack-extension=./MoodleTabRenamer
+
+mv *.crx bin
+mv *.pem bin
