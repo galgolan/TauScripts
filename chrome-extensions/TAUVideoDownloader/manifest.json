@@ -12,11 +12,11 @@
   "content_scripts": [
     {
       "matches": ["http://video.tau.ac.il/index.php?option=com_videos*"],
-      "js": ["tau-video-downloader.user.js"]
+      "js": ["jquery1.11.min.js", "tau-video-downloader.user.js"]
     },
     {
       "matches": ["https://video.tau.ac.il/index.php?option=com_videos*"],
-      "js": ["tau-video-downloader.user.js"]
+      "js": ["jquery1.11.min.js", "tau-video-downloader.user.js"]
     }
   ],
 

@@ -23,21 +23,10 @@ function requestDetailsPage(div) {
 	var url = div.children.item().href;
 	url = url.replace('https', 'http');
 
-	var req = new XMLHttpRequest();
-	req.onreadystatechange = function() {
-		ajaxCallback(req, div);
-	};
-	req.open("GET", url, true);
-	req.send();
-	++activeRequests;
-}
-
-function ajaxCallback(req, div) {
-	if (req.readyState == 4 && req.status==200)
-	{
+	$.get(url, function(data) {
 		--activeRequests;
 		// extract url from response
-		var url = extractUrl(req.responseText);
+		var url = extractUrl(data);
 
 		// show in page
 		var filename = extractFilename(div);
@@ -46,27 +35,26 @@ function ajaxCallback(req, div) {
 		// create the download all button if finished parsing all URLs
 		if(activeRequests <= 0)
 			createDownloadAllBtn();
-	}	
-}
+	});
 
-function getCourseName() {
-	var title = document.getElementsByClassName('course_title');
-	if(title.length == 1)
-		course_name = title[0].innerText;
+	++activeRequests;
 }
 
 function extractFilename(div) {
 	var fields = div.outerText.split('\n');
 	if(fields.length == 10) {
 		// this is the 'New Videos' page
-		var lecture = fields[3].split('[')[0].trim();
-		var course = fields[1].replace('/', '-');
+		var lecture = fields[3];
+		var course = fields[1];
 	}
-	else {// fields.length == 8
+	else {			// fields.length == 8
 		// this is a specific course page
-		var lecture = fields[1].split('[')[0].trim();
-		var course = course_name.replace('/', '-');
+		var lecture = fields[1];
+		var course = $('.course_title')[0].innerText;
 	}
+
+	course = course.replace('/','-');
+	lecture = lecture.split('[')[0].trim();
 	
 	return course + ' ' + lecture;
 }
@@ -81,10 +69,9 @@ function injectButton(div, url, filename) {
 
 function handleListView() {
 	// for each link in the page, async get it's video page
-	videoItems = document.getElementsByClassName("video_item");
-	for(i=0; i<videoItems.length; ++i) {
-		requestDetailsPage(videoItems[i]);
-	}
+	$('.video_item').each(function() {
+		requestDetailsPage($(this)[0]);
+	});
 }
 
 function revertToHttp() {
@@ -99,15 +86,9 @@ function revertToHttp() {
 }
 
 function createDownloadAllBtn() {
-	var div = document.getElementsByClassName("contentpane")[0];
-	for(i = 0; i < div.children.length; ++i) {
-		var c = div.children[i];
-		if(c.tagName == "H3") {
-			c.innerHTML += "   <A href='javascript:void(0)'>Download All</A>";
-			c.addEventListener('click', downloadAll);
-			break;
-		}
-	}
+	var c = $('.contentpane:eq(0) > h3')[0];
+	c.innerHTML += "   <A href='javascript:void(0)' id='downloadAllLink'>Download All</A>";
+	$('#downloadAllLink')[0].addEventListener("click", downloadAll);
 }
 
 function downloadAll() {
@@ -119,9 +100,10 @@ function downloadAll() {
 
 try
 {
-	revertToHttp();
-	getCourseName();	// must be called before we add the 'Download All' link
-	handleListView();
+	$(document).ready(function() {
+		revertToHttp();
+		handleListView();
+	});	
 }
 catch(x)
 {
@@ -131,7 +113,6 @@ catch(x)
 		err.name = "Unhandled exception in TAU Video Downloader";
 		err.message = x.message;
 		err.stack = x.stack || x.stacktrace || "";
-    	//var myStackTrace = x.stack || x.stacktrace || "";
     	throw(err);
 	}
 }
