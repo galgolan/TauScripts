@@ -3,7 +3,10 @@ chrome.webRequest.onHeadersReceived.addListener(
 	function(details) {
 		//console.log(JSON.stringify(details));
 		var filename = map[details.requestId];
-		// TODO: handle not in map
+		// handle not in map
+		if(typeof filename === 'undefined') {
+			return {responseHeaders: details.responseHeaders};
+		}
 		
 		// iterate over all headers and look for ETag
 		details.responseHeaders.forEach(function(v,i,a) {
@@ -42,9 +45,18 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
+
     	for(i = 0; i < request.length; ++i) {
 			var item = request[i];
-			chrome.downloads.download({url: item.url, filename: item.filename, saveAs:false});
+
+			chrome.downloads.download({url: item.url, filename: item.filename, saveAs:false}, function(downloadId) {
+				// check if the download was queued successfully
+				if(typeof downloadId === 'undefined') {
+
+					// send the error message back to the content script
+					chrome.tabs.sendMessage(sender.tab.id, item);
+				}
+			});
 		}
   	}
 );

@@ -14,8 +14,13 @@ function extractUrl(innerHtml)
 {
 	var re = new RegExp('\'mms://msvideo.tau.ac.il/CMS/(.+?\.wmv)\'');
 	var captures = re.exec(innerHtml);
-	var url = 'https://video.tau.ac.il/files/' + captures[1];
+	var url = 'http://video.tau.ac.il/files/' + captures[1];
 	return url;
+}
+
+function cleanFilename(string) {
+	var cleanString = string.replace(/[\|&;\$#%@":<\/>\(\)\+,]/g, " ");
+	return cleanString.replace('^','').replace('[','').replace(']','').trim();
 }
 
 function requestDetailsPage(div) {
@@ -53,10 +58,9 @@ function extractFilename(div) {
 		var course = $('.course_title')[0].innerText;
 	}
 
-	course = course.replace('/','-');
-	lecture = lecture.split('[')[0].trim();
+	lecture = lecture.split('[')[0];
 	
-	return course + ' ' + lecture;
+	return cleanFilename(course.trim() + '-' + lecture.trim());
 }
 
 function injectButton(div, url, filename) {
@@ -94,8 +98,18 @@ function createDownloadAllBtn() {
 function downloadAll() {
 	if(confirm('Are you sure you want to download ' + filesList.length + ' videos?')) {
 		// send a message to the background script with the downloads list
-		chrome.runtime.sendMessage(filesList);
+		chrome.runtime.sendMessage(filesList, function(response) {
+			// nothing here
+		});
 	}
+}
+
+function registerMessageReceiver() {
+	chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+		// error downloading one of the files
+		console.error('Error downloading video: ' + JSON.stringify(request));
+		alert('Cant download: ' + request.filename);
+  	});
 }
 
 try
@@ -103,6 +117,7 @@ try
 	$(document).ready(function() {
 		revertToHttp();
 		handleListView();
+		registerMessageReceiver();
 	});	
 }
 catch(x)
@@ -113,6 +128,7 @@ catch(x)
 		err.name = "Unhandled exception in TAU Video Downloader";
 		err.message = x.message;
 		err.stack = x.stack || x.stacktrace || "";
+		// TODO: console.log err
     	throw(err);
 	}
 }
