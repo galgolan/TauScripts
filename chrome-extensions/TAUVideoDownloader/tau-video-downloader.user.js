@@ -9,6 +9,69 @@ var debug_mode = true;
 var course_name = '';
 var filesList = [];
 var activeRequests = 0;
+var courseList = [];
+
+function extractCourseMap() {
+	var script = $('script')[9];
+	var re = new RegExp(/JSON.decode\('(.+)'\);/g);
+	var captures = re.exec(script.innerText);
+	var courseMap = JSON.parse(captures[1]);
+	
+	// flatten dictionary to array of value-label objects
+	courseList = $.map(courseMap, function(v,k) {
+		return $.map(v, function(ov,ok) {
+			return { value:k+'.'+ov.value, label:ov.text}
+		})
+	});
+
+	// filter invalid items
+	courseList = $.grep(courseList, function(item) {
+		return (item.value.indexOf('null') == -1);
+	});
+}
+
+function addSearchBox() {
+	// JQuery UI required dependency
+	$('head')[0].innerHTML += "<link rel='stylesheet' href='//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css'>";	
+
+	var groupDetails = $('#group_details')[0];
+	
+	// add new UI elements
+	var newHTML = "<input type='text' id='searchbox' placeholder='הקלד שם קורס' />"	// todo: make 400px wide	
+	+ "<input value='בחירה' type='submit' id='go' class='tau-scripts-button' />"
+	// add fields which will be submitted
+	+ "<input type='hidden' name='course_id' id='course_id_field' value='' />"
+	+ "<input type='hidden' name='dep_id' id='dep_id_field' value='' />";
+
+	groupDetails.innerHTML = newHTML;
+
+	// init search box
+	$("#searchbox").autocomplete({
+      	source: courseList,
+      	focus: function(event, ui) {
+			// prevent autocomplete from updating the textbox
+			event.preventDefault();
+			// manually update the textbox
+			$(this).val(ui.item.label);
+		},
+		select: function(event, ui) {
+			// prevent autocomplete from updating the textbox
+			event.preventDefault();
+			// manually update the textbox and hidden field
+			$(this).val(ui.item.label);
+			
+			// set the form's hidden fields
+			var ids = ui.item.value.split('.');
+			$('#dep_id_field')[0].value = ids[0];
+			$('#course_id_field')[0].value = ids[1];
+		}
+    });
+}
+
+function hideOldSearchUI() {
+	var groupDetails = $('#group_details')[0];
+	groupDetails.innerHTML = "";
+}
 
 function extractUrl(innerHtml)
 {
@@ -78,17 +141,6 @@ function handleListView() {
 	});
 }
 
-function revertToHttp() {
-	var location = String(window.location);
-
-	// the details page redirects to HTTP, so we must also run from HTTP
-	if(location.indexOf('https') != -1)
-	{
-		var target = location.replace('https','http');
-		window.location = target;
-	}
-}
-
 function createDownloadAllBtn() {
 	var c = $('.contentpane:eq(0) > h3')[0];
 	c.innerHTML += "   <A href='javascript:void(0)' id='downloadAllLink'>Download All</A>";
@@ -115,9 +167,11 @@ function registerMessageReceiver() {
 try
 {
 	$(document).ready(function() {
-		revertToHttp();
+		hideOldSearchUI();
 		handleListView();
 		registerMessageReceiver();
+		extractCourseMap();
+		addSearchBox();
 	});	
 }
 catch(x)

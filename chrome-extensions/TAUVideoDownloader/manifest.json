@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "TAU Video Downloader",
-  "version": "3.4",
+  "version": "3.5",
 
   "author": "Galgo",
   "description": "Makes it easy to download/watch course videos with external applications on the TAU video server.",  
@@ -12,11 +12,12 @@
   "content_scripts": [
     {
       "matches": ["http://video.tau.ac.il/index.php?option=com_videos*"],
-      "js": ["jquery1.11.min.js", "tau-video-downloader.user.js"]
+      "js": ["jquery1.11.min.js", "jquery-ui.js", "tau-video-downloader.user.js"],
+      "css": ["tau-scripts.css"]
     },
     {
       "matches": ["https://video.tau.ac.il/index.php?option=com_videos*"],
-      "js": ["jquery1.11.min.js", "tau-video-downloader.user.js"]
+      "js": ["revert-https.user.js"]      
     }
   ],
 

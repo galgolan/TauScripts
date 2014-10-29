@@ -1,0 +1,26 @@
+.tau-scripts-button {
+	font-family: Verdana,Arial,sans-serif;
+	font-size: 1.1em;
+	font-weight: normal;
+	color: #444444;
+	text-align: center;
+	padding: .4em 1em;
+	
+	cursor: pointer;
+	border-top-color: buttonface;
+	border-top-style: outset;
+	border-top-width: 2px;
+	border-right-color: buttonface;
+	border-right-style: outset;
+	border-right-width: 2px;
+	border-bottom-color: buttonface;
+	border-bottom-style: outset;
+	border-bottom-width: 2px;
+	border-left-color: buttonface;
+	border-left-style: outset;
+	border-left-width: 2px;
+}
+
+.tau-scripts-text {
+	width: 400px;
+}
