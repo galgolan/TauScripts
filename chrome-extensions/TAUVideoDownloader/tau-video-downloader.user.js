@@ -12,22 +12,31 @@ var activeRequests = 0;
 var courseList = [];
 
 function extractCourseMap() {
-	var script = $('script')[9];
-	var re = new RegExp(/JSON.decode\('(.+)'\);/g);
-	var captures = re.exec(script.innerText);
-	var courseMap = JSON.parse(captures[1]);
-	
-	// flatten dictionary to array of value-label objects
-	courseList = $.map(courseMap, function(v,k) {
-		return $.map(v, function(ov,ok) {
-			return { value:k+'.'+ov.value, label:ov.text}
-		})
-	});
+	var scripts = $('script');
+	for(i=0; i<scripts.length;++i)
+	{
+		var script = scripts[i];
+		var re = new RegExp(/JSON.decode\('(.+)'\);/g);
+		var captures = re.exec(script.innerText);
+		if(captures == null)
+			continue;
+		
+		var courseMap = JSON.parse(captures[1]);
+		
+		// flatten dictionary to array of value-label objects
+		courseList = $.map(courseMap, function(v,k) {
+			return $.map(v, function(ov,ok) {
+				return { value:k+'.'+ov.value, label:ov.text}
+			})
+		});
 
-	// filter invalid items
-	courseList = $.grep(courseList, function(item) {
-		return (item.value.indexOf('null') == -1);
-	});
+		// filter invalid items
+		courseList = $.grep(courseList, function(item) {
+			return (item.value.indexOf('null') == -1);
+		});
+		
+		break;
+	}
 }
 
 function addSearchBox() {
@@ -37,13 +46,13 @@ function addSearchBox() {
 	var groupDetails = $('#group_details')[0];
 	
 	// add new UI elements
-	var newHTML = "<input type='text' id='searchbox' placeholder='הקלד שם קורס' />"	// todo: make 400px wide	
+	var newHTML = "<input type='text' id='searchbox' placeholder='או הקלד שם קורס לחיפוש' />"	// todo: make 400px wide	
 	+ "<input value='בחירה' type='submit' id='go' class='tau-scripts-button' />"
 	// add fields which will be submitted
 	+ "<input type='hidden' name='course_id' id='course_id_field' value='' />"
 	+ "<input type='hidden' name='dep_id' id='dep_id_field' value='' />";
 
-	groupDetails.innerHTML = newHTML;
+	groupDetails.innerHTML += newHTML;
 
 	// init search box
 	$("#searchbox").autocomplete({
@@ -73,10 +82,24 @@ function hideOldSearchUI() {
 	groupDetails.innerHTML = "";
 }
 
+function extractNewStyleUrl(innerHtml)
+{
+	var re = new RegExp('\"rtsp:\/\/vod\.tau\.ac\.il:80\/vod\/\_definst\_\/mp4:(.+?\.mp4)\"');
+	var captures = re.exec(innerHtml);
+	if(captures == null)
+		return null;			// unknown page
+	
+	var url = 'http://video.tau.ac.il/files/' + captures[1];
+	return url;
+}
+
 function extractUrl(innerHtml)
 {
 	var re = new RegExp('\'mms://msvideo.tau.ac.il/CMS/(.+?\.wmv)\'');
 	var captures = re.exec(innerHtml);
+	if(captures == null)
+		return extractNewStyleUrl(innerHtml);
+	
 	var url = 'http://video.tau.ac.il/files/' + captures[1];
 	return url;
 }
@@ -95,6 +118,8 @@ function requestDetailsPage(div) {
 		--activeRequests;
 		// extract url from response
 		var url = extractUrl(data);
+		if(url == null)
+			return;
 
 		// show in page
 		var filename = extractFilename(div);
@@ -127,9 +152,10 @@ function extractFilename(div) {
 }
 
 function injectButton(div, url, filename) {
-	filesList[filesList.length] = {url: url, filename: filename};
+	var fullName = filename + "." + url.split('.').pop();
+	filesList[filesList.length] = {url: url, filename: fullName};
 
-	var html = "<BR/><a href=\"" + url + '#' + filename + "\" download>Download Video</a>";
+	var html = "<BR/><a href=\"" + url + '#' + fullName + "\" download>Download Video</a>";
 	var detailsPane = div.children[1].children[2];
 	detailsPane.innerHTML += html;
 }
@@ -166,12 +192,13 @@ function registerMessageReceiver() {
 
 try
 {
-	$(document).ready(function() {
-		hideOldSearchUI();
+	$(document).ready(function() {	
 		handleListView();
 		registerMessageReceiver();
 		extractCourseMap();
+		//hideOldSearchUI();
 		addSearchBox();
+		
 	});	
 }
 catch(x)

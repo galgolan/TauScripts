@@ -19,13 +19,13 @@ chrome.webRequest.onHeadersReceived.addListener(
 		details.responseHeaders.push({name:"Content-Disposition",value:"attachment; filename=\"" + filename + "\""});
 		return {responseHeaders: details.responseHeaders};
 	},
-	{urls: ["*://video.tau.ac.il/files/*wmv"]},
+	{urls: ["*://video.tau.ac.il/files/*wmv", "*://video.tau.ac.il/files/*mp4"]},
 	["blocking","responseHeaders"]
 );
 
 var map = {};
 
-// event listener to inset custom filename header
+// event listener to insert custom filename header
 chrome.webRequest.onBeforeSendHeaders.addListener(
 	function(details) {
 		//console.log(JSON.stringify(details));
@@ -39,7 +39,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 		map[details.requestId] = filename;
 		return {requestHeaders: details.requestHeaders};
 	},
-	{urls: ["*://video.tau.ac.il/files/*wmv"]},
+	{urls: ["*://video.tau.ac.il/files/*wmv", "*://video.tau.ac.il/files/*mp4"]},
 	["blocking","requestHeaders"]
 );
 
