@@ -84,7 +84,7 @@ function hideOldSearchUI() {
 
 function extractNewStyleUrl(innerHtml)
 {
-	var re = new RegExp('\"rtsp:\/\/vod\.tau\.ac\.il:80\/vod\/\_definst\_\/mp4:(.+?\.mp4)\"');
+	var re = new RegExp('\"rt[sm]p:\/\/vod\.tau\.ac\.il:80\/.+\/\_definst\_\/mp4:(.+?\.mp4)\"');
 	var captures = re.exec(innerHtml);
 	if(captures == null)
 		return null;			// unknown page
@@ -190,16 +190,43 @@ function registerMessageReceiver() {
   	});
 }
 
+function getUrlParameters()
+{
+  var query_string = {};
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i=0;i<vars.length;i++) {
+    var pair = vars[i].split("=");
+        // If first entry with this name
+    if (typeof query_string[pair[0]] === "undefined") {
+      query_string[pair[0]] = pair[1];
+        // If second entry with this name
+    } else if (typeof query_string[pair[0]] === "string") {
+      var arr = [ query_string[pair[0]], pair[1] ];
+      query_string[pair[0]] = arr;
+        // If third or later entry with this name
+    } else {
+      query_string[pair[0]].push(pair[1]);
+    }
+  } 
+    return query_string;
+}
+
 try
 {
-	$(document).ready(function() {	
-		handleListView();
-		registerMessageReceiver();
-		extractCourseMap();
-		//hideOldSearchUI();
-		addSearchBox();
-		
-	});	
+	// skip if page is the video player
+	var urlParams = getUrlParameters();
+	if(urlParams["view"] != "video")
+	{	
+		$(document).ready(function() {	
+			handleListView();
+			registerMessageReceiver();
+			extractCourseMap();
+			//hideOldSearchUI();
+			addSearchBox();
+			
+		});	
+	}
 }
 catch(x)
 {
