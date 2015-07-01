@@ -12,13 +12,13 @@
   "content_scripts": [
     {
       "matches": ["http://ivideo.tau.ac.il/index.php?option=com_videos*"],
-      "js": ["jquery1.11.min.js", "jquery-ui.js", "tau-video-downloader.user.js"],
-      "css": ["tau-scripts.css"]
+      "js": ["jquery1.11.min.js", "jquery-ui.js", "tau-video-downloader.user.js"]
+      //"css": ["tau-scripts.css"]
     },
 	{
       "matches": ["http://video.tau.ac.il/index.php?option=com_videos*"],
-      "js": ["jquery1.11.min.js", "jquery-ui.js", "tau-video-downloader.user.js"],
-      "css": ["tau-scripts.css"]
+      "js": ["jquery1.11.min.js", "jquery-ui.js", "tau-video-downloader.user.js"]
+      //"css": ["tau-scripts.css"]
     },
     {
       "matches": ["https://video.tau.ac.il/index.php?option=com_videos*"],

@@ -1,8 +1,6 @@
 // ==UserScript==
-// @name TAU Video Server Downloader
+// @name TAU Video Downloader
 // @author Galgo
-// @match http://video.tau.ac.il/index.php?option=com_videos*
-// @match https://video.tau.ac.il/index.php?option=com_videos*
 // ==/UserScript==
 
 var debug_mode = true;
@@ -41,40 +39,45 @@ function extractCourseMap() {
 
 function addSearchBox() {
 	// JQuery UI required dependency
-	$('head')[0].innerHTML += "<link rel='stylesheet' href='//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css'>";	
+	$('head')[0].innerHTML += "<link id='jqueryuilink' rel='stylesheet' href='//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css'>";	
 
-	var groupDetails = $('#group_details')[0];
-	
+	var groupDetails = $('.contentpane:eq(0) > h3')[0];
+	if(typeof groupDetails == 'undefined')
+		return;
 	// add new UI elements
-	var newHTML = "<input type='text' id='searchbox' placeholder='או הקלד שם קורס לחיפוש' />"	// todo: make 400px wide	
-	+ "<input value='בחירה' type='submit' id='go' class='tau-scripts-button' />"
+	var newHTML = "<div><form method='post' action='index.php?option=com_videos'><input type='text' id='tvd_searchbox' placeholder='או הקלד שם קורס לחיפוש' />"
+	+ "<input value='בחירה' type='submit' id='go2' class='tau-scripts-button' />"
 	// add fields which will be submitted
 	+ "<input type='hidden' name='course_id' id='course_id_field' value='' />"
-	+ "<input type='hidden' name='dep_id' id='dep_id_field' value='' />";
+	+ "<input type='hidden' name='dep_id' id='dep_id_field' value='' />"
+	+ "<input type='hidden' name='view' value='videos' />"
+	+ "<form></div>";
 
-	groupDetails.innerHTML += newHTML;
+	groupDetails.innerHTML = newHTML + groupDetails.innerHTML;	
 
-	// init search box
-	$("#searchbox").autocomplete({
-      	source: courseList,
-      	focus: function(event, ui) {
-			// prevent autocomplete from updating the textbox
-			event.preventDefault();
-			// manually update the textbox
-			$(this).val(ui.item.label);
-		},
-		select: function(event, ui) {
-			// prevent autocomplete from updating the textbox
-			event.preventDefault();
-			// manually update the textbox and hidden field
-			$(this).val(ui.item.label);
-			
-			// set the form's hidden fields
-			var ids = ui.item.value.split('.');
-			$('#dep_id_field')[0].value = ids[0];
-			$('#course_id_field')[0].value = ids[1];
-		}
-    });
+	setTimeout(function(){
+		// init search box
+		$("#tvd_searchbox").autocomplete({
+			source: courseList,
+			focus: function(event, ui) {
+				// prevent autocomplete from updating the textbox
+				event.preventDefault();
+				// manually update the textbox
+				$(this).val(ui.item.label);
+			},
+			select: function(event, ui) {
+				// prevent autocomplete from updating the textbox
+				event.preventDefault();
+				// manually update the textbox and hidden field
+				$(this).val(ui.item.label);
+				
+				// set the form's hidden fields
+				var ids = ui.item.value.split('.');
+				$('#dep_id_field')[0].value = ids[0];
+				$('#course_id_field')[0].value = ids[1];
+			}
+		});
+	}, 1000);
 }
 
 function hideOldSearchUI() {
@@ -84,7 +87,7 @@ function hideOldSearchUI() {
 
 function extractNewStyleUrl(innerHtml)
 {
-	var re = new RegExp('\"rt[sm]p:\/\/vod\.tau\.ac\.il:80\/.+\/\_definst\_\/mp4:(.+?\.mp4)\"');
+	var re = new RegExp('[\"\']rt[sm]p:\/\/vod\.tau\.ac\.il:80\/.+\/\_definst\_\/mp4:(.+?\.mp4)[\"\']');
 	var captures = re.exec(innerHtml);
 	if(captures == null)
 		return null;			// unknown page
@@ -123,7 +126,7 @@ function requestDetailsPage(div) {
 
 		// show in page
 		var filename = extractFilename(div);
-		injectButton(div, url, filename);
+		injectButton(div, url, filename, true);
 
 		// create the download all button if finished parsing all URLs
 		if(activeRequests <= 0)
@@ -151,12 +154,18 @@ function extractFilename(div) {
 	return cleanFilename(course.trim() + '-' + lecture.trim());
 }
 
-function injectButton(div, url, filename) {
+function injectButton(div, url, filename, children) {
 	var fullName = filename + "." + url.split('.').pop();
 	filesList[filesList.length] = {url: url, filename: fullName};
 
 	var html = "<BR/><a href=\"" + url + '#' + fullName + "\" download>Download Video</a>";
-	var detailsPane = div.children[1].children[2];
+	var detailsPane = null;
+	
+	if(children == true)
+		detailsPane = div.children[1].children[2];
+	else
+		detailsPane = div;
+	
 	detailsPane.innerHTML += html;
 }
 
@@ -212,20 +221,53 @@ function getUrlParameters()
     return query_string;
 }
 
+function handleVideoPlayerPage()
+{
+	var filename = cleanFilename(document.getElementsByClassName('video_contentheading')[0].innerText);
+	var scripts = document.getElementsByTagName('script');
+	var url = null;
+	
+	for(i = 0; i < scripts.length; ++i)
+	{
+		url = extractUrl(scripts[i].innerText);
+		if (url != null)
+		{
+			break;
+		}
+	}
+	
+	if(url == null)
+		return;
+	
+	var div = document.getElementById('video_holder_footerInner');
+	if(div == null)
+		return;
+	
+	injectButton(div, url, filename, false);
+}
+
 try
 {
 	// skip if page is the video player
 	var urlParams = getUrlParameters();
 	if(urlParams["view"] != "video")
 	{	
+		// lectures list page
 		$(document).ready(function() {	
 			handleListView();
 			registerMessageReceiver();
 			extractCourseMap();
 			//hideOldSearchUI();
-			addSearchBox();
-			
-		});	
+			//addSearchBox();
+		});
+	}
+	else if(urlParams["view"] == "video")
+	{
+		// video player page
+		$(document).ready(function() {	
+			registerMessageReceiver();
+			handleVideoPlayerPage();
+		});
 	}
 }
 catch(x)
