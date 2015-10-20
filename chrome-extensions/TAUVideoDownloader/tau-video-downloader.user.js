@@ -114,7 +114,7 @@ function cleanFilename(string) {
 
 function requestDetailsPage(div) {
 	// extract url from div
-	var url = div.children.item().href;
+	var url = div.children.item(0).href;
 	url = url.replace('https', 'http');
 
 	$.get(url, function(data) {
