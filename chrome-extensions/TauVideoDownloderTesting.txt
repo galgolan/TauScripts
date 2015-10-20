@@ -1,0 +1,36 @@
+Before publishing new versions to the chrome web store you must perform the following checklist:
+
+1. Loading the extension in the browser
+
+browse to chrome://extensions and disable any existing installations of the extension.
+Check 'Developer Tools' on the top and click 'Load unpacked extensions...'.
+select the TAUVideoDownloader directory from the Git repository with your updated code.
+See the local version listed in the extensions page ? you can start testing.
+
+2. Version number
+make sure the correct (updated) version number appears in the chrome://extensions
+updating the version number before each time you publish will enable you to track which
+clients have received the updated.
+
+3. Test download links
+For each of the following pages, you must make sure the download links are working and the downloaded files
+have the correct name. There are 2 types of download links:
+	'Download All' at the top of the page.
+	'Download' next to each item in a list view
+	'Download File' bellow the video player
+	
+Old format pages (mms://msvideo.tau.ac.il):
+	Not sure if those exist anymore
+
+New format pages (rtmp://vod.tau.ac.il):
+	http://video.tau.ac.il/index.php?option=com_videos&Itemid=53&lang=he
+	http://video.tau.ac.il/index.php?option=com_videos&view=video&id=11443&Itemid=53&lang=he
+	http://video.tau.ac.il/index.php?option=com_videos&Itemid=53&lang=he
+	
+Alternate login pages:
+	TODO
+	
+4. Review user feedback
+Open the extension's page on the web store and click the 'Support' tabs.
+review recent user complaints and bug reports and make sure you addressed all the problems they have reported.
+Usually users complain about pages not working and the support page is a great resource for finding test cases.
